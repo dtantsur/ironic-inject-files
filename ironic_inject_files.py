@@ -10,6 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
 import contextlib
 import logging
 import os
@@ -77,19 +78,23 @@ class InjectFilesHardwareManager(hardware.HardwareManager):
                 'priority': 0,
                 'reboot_requested': False,
                 'abortable': True,
+                'argsinfo': {
+                    'files': {
+                        'required': True,
+                        'description': 'Mapping between file paths and their '
+                                       'base64 encoded contents'
+                    }
+                }
             }
         ]
 
-    def inject_files(self, node, ports):
-        files = node['extra'].get('inject_files')
-        if not files:
-            LOG.warning('No files to inject!')
-
+    def inject_files(self, node, ports, files):
         for dest, content in files.items():
+            content = base64.b64decode(content)
             dest = dest.lstrip('/')
             # Use /etc as a marker directory of a root
             with partition_with_path('etc') as path:
                 fname = os.path.normpath(os.path.join(path, '..', dest))
                 LOG.info('Injecting /%s into %s', dest, fname)
-                with open(fname, 'wt') as fp:
+                with open(fname, 'wb') as fp:
                     fp.write(content)
