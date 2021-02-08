@@ -1,0 +1,1 @@
+ironic-inject-files git /tmp/ironic-inject-files https://github.com/dtantsur/ironic-inject-files
