@@ -89,12 +89,11 @@ class InjectFilesHardwareManager(hardware.HardwareManager):
         ]
 
     def inject_files(self, node, ports, files):
-        for dest, content in files.items():
-            content = base64.b64decode(content)
-            dest = dest.lstrip('/')
-            # Use /etc as a marker directory of a root
-            with partition_with_path('etc') as path:
-                fname = os.path.normpath(os.path.join(path, '..', dest))
-                LOG.info('Injecting /%s into %s', dest, fname)
+        with partition_with_path('etc') as path:
+            for dest, content in files.items():
+                content = base64.b64decode(content)
+                fname = os.path.normpath(
+                    os.path.join(path, '..', dest.lstrip('/')))
+                LOG.info('Injecting %s into %s', dest, fname)
                 with open(fname, 'wb') as fp:
                     fp.write(content)
